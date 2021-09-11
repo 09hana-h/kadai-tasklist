@@ -32,7 +32,13 @@ class TasksController extends Controller
     //postでtasks/にアクセスされた場合の新規登録処理
     public function store(Request $request)
     {
+        $request->validate([
+            'status' => 'required|max:10',
+            'content' => 'required|max:255',
+        ]);
+        
         $task = new Task;
+        $task->status = $request->status;
         $task->content = $request->content;
         $task->save();
         
@@ -63,7 +69,13 @@ class TasksController extends Controller
     //putまたはpatchでtasks/(任意のid)にアクセスされた場合の更新処理
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'status' => 'required|max:10',
+            'content' => 'required|max:255',
+        ]);
+        
         $task = Task::findOrFail($id);
+        $task->status = $request->status;
         $task->content = $request->content;
         $task->save();
         
