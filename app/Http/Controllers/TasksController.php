@@ -68,7 +68,7 @@ class TasksController extends Controller
             ]);
         }
         else{
-            return back();
+            return redirect('/');
         }
     }
 
@@ -77,9 +77,14 @@ class TasksController extends Controller
     {
         $task = Task::findOrFail($id);
         
-        return view('tasks.edit', [
-            'task' => $task,
-        ]);
+        if (\Auth::id() === $task->user_id) {
+            return view('tasks.edit', [
+                'task' => $task,
+            ]);
+        }
+        else{
+            return redirect('/');
+        }
     }
 
     //putまたはpatchでtasks/(任意のid)にアクセスされた場合の更新処理
