@@ -11,12 +11,23 @@ class TasksController extends Controller
     //getでtasks/にアクセスされた場合の一覧表示処理
     public function index()
     {
-        $tasks = Task::all();
+        $data = [];
+        if (\Auth::check()) { //認証済みの場合
+            //認証済みのユーザを取得
+            $user = \Auth::user();
+            //ユーザの投稿一覧を日時の降順で取得
+            $tasks = $user->tasks()->orderBy('created_at', 'desc')->paginate(10);
+            
+            $data = [
+                'user' => $user,
+                'tasks' => $tasks,
+            ];
+        }
         
-        return view('tasks.index', [
-            'tasks' => $tasks,
-        ]);
+        return view('welcome', $data);
+            
     }
+
 
     //getでtasks/createにアクセスされた場合の新規登録画面表示
     public function create()
@@ -40,6 +51,7 @@ class TasksController extends Controller
         $task = new Task;
         $task->status = $request->status;
         $task->content = $request->content;
+        $task->user_id = $request->user()->id;
         $task->save();
         
         return redirect('/');
@@ -50,10 +62,14 @@ class TasksController extends Controller
     {
         $task = Task::findOrFail($id);
         
-        return view('tasks.show', [
-            'task' => $task,
-        ]);
-        
+        if (\Auth::id() === $task->user_id) {
+            return view('tasks.show', [
+                'task' => $task,
+            ]);
+        }
+        else{
+            return back();
+        }
     }
 
     //getでtasks/(任意のid)/editにアクセスされた場合の更新画面表示処理
@@ -77,6 +93,7 @@ class TasksController extends Controller
         $task = Task::findOrFail($id);
         $task->status = $request->status;
         $task->content = $request->content;
+        $task->user_id = $request->user()->id;
         $task->save();
         
         return redirect('/');
@@ -91,7 +108,10 @@ class TasksController extends Controller
     public function destroy($id)
     {
         $task = Task::findOrFail($id);
-        $task->delete();
+        
+        if (\Auth::id() === $task->user_id) {
+            $task->delete();
+        }
         
         return redirect('/');
     }
